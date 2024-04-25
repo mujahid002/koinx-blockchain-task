@@ -18,9 +18,9 @@ app.use(express.urlencoded({ extended: true }));
 const port = process.env.PORT || 3001;
 
 // Get Request for Testing
-app.get("/", async (req, res) => {
-  res.status(200).send(`Working on ${port} PORT!`);
-});
+// app.get("/", async (req, res) => {
+//   res.status(200).send(`Working on ${port} PORT!`);
+// });
 
 // Fetch User Balance with address as input
 // return: fetch user's balance in wei
@@ -64,7 +64,7 @@ app.get("/fetch-user-transactions", async (req, res) => {
       return res.status(400).send("Invalid user address!");
     }
 
-    const etherscanUrl = `https://api.etherscan.io/api?module=account&action=txlist&address=${userAddress}&startblock=0&endblock=99999999&page=3&offset=10&sort=asc&apikey=${process.env.ETHERSCAN_API_KEY}`;
+    const etherscanUrl = `https://api.etherscan.io/api?module=account&action=txlist&address=${userAddress}&startblock=0&endblock=99999999&page=1&offset=10000&sort=asc&apikey=${process.env.ETHERSCAN_API_KEY}`;
 
     // Fetch user transactions
     const response = await fetch(etherscanUrl);
@@ -80,7 +80,7 @@ app.get("/fetch-user-transactions", async (req, res) => {
       return res.status(404).send("No transactions found for the user");
     }
 
-    // Store transactions on Mongo
+    // Store latest transactions on Mongo
     await storeUserTransactions(userAddress, responseData.result);
 
     // Return user transactions
@@ -116,15 +116,15 @@ app.get("/fetch-balance-price", async (req, res) => {
     const resTrxData = await resTrx.json();
 
     let trxArray = resTrxData.result;
-    // let userTotalBalance = parseFloat(resBalanceData.result);
+    // let userTotalBalance = parseFloat(resBalanceData.result) / 10 ** 18;
     let userTotalBalance = 0;
     console.log("The user total balance is: ", userTotalBalance);
 
     for (let i = 0; i < trxArray.length; i++) {
-      if (trxArray[i].to === userAddress) {
-        userTotalBalance += parseFloat(trxArray[i].value);
+      if (trxArray[i].to == userAddress) {
+        userTotalBalance += parseFloat(trxArray[i].value) / 10 ** 18;
       } else {
-        userTotalBalance -= parseFloat(trxArray[i].value);
+        userTotalBalance -= parseFloat(trxArray[i].value) / 10 ** 18;
       }
     }
 
@@ -155,7 +155,7 @@ app.get("/fetch-balance-price", async (req, res) => {
 app.listen(port, async () => {
   console.log(`Server listening on port: ${port}`);
   // store while running server!
-  await storePrice();
+  // await storePrice();
   //   connectMongo();
 });
 
