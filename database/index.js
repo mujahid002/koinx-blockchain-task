@@ -1,4 +1,26 @@
 const connectMongo = require("./connect-mongo");
+
+// store user transactions based on user's address
+const storeUserTransactions = async (address, data) => {
+  try {
+    // Mongo Db connection
+    const client = await connectMongo();
+    // connect with db and collection
+    const db = client.db("koinx");
+    const collection = db.collection("user-transactions");
+
+    // Insert one document
+    await collection.insertOne({
+      userAddress: address,
+      transactionArray: data,
+    });
+
+    console.log(`Transactions stored for ${userAddress}`);
+    await client.close();
+  } catch (error) {
+    console.error("Error in storing user's transactions:", error);
+  }
+};
 const storePrice = async () => {
   try {
     const client = await connectMongo();
@@ -22,6 +44,7 @@ const storePrice = async () => {
   }
 };
 
+// fetch latest ether price from MongoDb
 const fetchPrice = async (req, res) => {
   try {
     const client = await connectMongo();
@@ -33,11 +56,11 @@ const fetchPrice = async (req, res) => {
       .sort({ timestamp: -1 })
       .toArray();
 
-    await res.status(200).json({ latestEtherPrices: etherPrices });
+    await res.status(200).json({ latestEtherPrices: etherPrices[0] });
 
     // await client.close();
   } catch (error) {
-    console.log("Unable to connect and fetch Ether Prices: ", error);
+    console.log("Unable to connect and fetch Ether Price: ", error);
     // If res is provided, send an error response
     if (res) {
       await res.status(500).json({
@@ -50,4 +73,4 @@ const fetchPrice = async (req, res) => {
   }
 };
 
-module.exports = { storePrice, fetchPrice };
+module.exports = { storeUserTransactions, storePrice, fetchPrice };
