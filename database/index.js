@@ -9,18 +9,51 @@ const storeUserTransactions = async (address, data) => {
     const db = client.db("koinx");
     const collection = db.collection("user-transactions");
 
-    // Insert one document
-    await collection.insertOne({
+    // Retrieve the latest document for the user
+    const userTransactionDocument = await collection.findOne({
       userAddress: address,
-      transactionArray: data,
     });
 
-    console.log(`Transactions stored for ${userAddress}`);
+    // Extract the transactionArray from the document if it exists, otherwise set it to an empty array
+    const oldData = userTransactionDocument
+      ? userTransactionDocument.transactionArray
+      : [];
+
+    // Check if there are any new transactions to store
+    const newData = data.slice(0, 10); // Get the latest 10 elements from data
+
+    // Check if both newData and oldData are not empty before accessing their first elements
+    if (newData.length > 0 && oldData.length > 0) {
+      const newHash = newData[0].hash; // Retrieve the hash value of the first element of newData
+      const oldHash = oldData[0].hash; // Retrieve the hash value of the first element of oldData
+
+      if (newHash !== oldHash) {
+        // Insert one document
+        await collection.insertOne({
+          userAddress: address,
+          transactionArray: newData,
+          timestamp: new Date(),
+        });
+        console.log(`Transactions stored for ${address}`);
+      } else {
+        console.log(`No new transactions to store for ${address}`);
+      }
+    } else {
+      // If oldData is undefined or empty, insert the newData
+      await collection.insertOne({
+        userAddress: address,
+        transactionArray: newData,
+        timestamp: new Date(),
+      });
+      console.log(`Transactions stored for ${address}`);
+    }
+
     await client.close();
   } catch (error) {
     console.error("Error in storing user's transactions:", error);
   }
 };
+
 const storePrice = async () => {
   try {
     const client = await connectMongo();
