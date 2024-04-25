@@ -46,7 +46,10 @@ app.get("/fetch-user-balance", async (req, res) => {
     }
 
     // Return user balance
-    return res.status(200).json(responseData);
+    return res.status(200).json({
+      userBalance: parseFloat(responseData.result) / 10 ** 18,
+      Format: "ETH",
+    });
   } catch (error) {
     console.error("Error fetching user balance:", error);
     return res.status(500).send("Internal server error");
@@ -117,16 +120,20 @@ app.get("/fetch-balance-price", async (req, res) => {
 
     let trxArray = resTrxData.result;
     // let userTotalBalance = parseFloat(resBalanceData.result) / 10 ** 18;
+    // let userTotalBalance = parseFloat(resBalanceData.result) / 10 ** 18;
     let userTotalBalance = 0;
-    console.log("The user total balance is: ", userTotalBalance);
 
     for (let i = 0; i < trxArray.length; i++) {
       if (trxArray[i].to == userAddress) {
+        // userTotalBalance += parseFloat(trxArray[i].value);
         userTotalBalance += parseFloat(trxArray[i].value) / 10 ** 18;
       } else {
+        // userTotalBalance -= parseFloat(trxArray[i].value);
         userTotalBalance -= parseFloat(trxArray[i].value) / 10 ** 18;
       }
     }
+
+    console.log("The user total balance is: ", userTotalBalance);
 
     const etherPriceUrl = `https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=inr`;
     const resPrice = await fetch(etherPriceUrl);
@@ -139,9 +146,13 @@ app.get("/fetch-balance-price", async (req, res) => {
 
     // Return user balance
     return res.status(200).json({
-      userBalance: resBalanceData.result,
-      currentEtherPrice: resData.ethereum.inr,
-      userTotalBalance: userTotalBalance,
+      userBalance: `${resBalanceData.result} wei`,
+      currentEtherPrice: `Rs.${resData.ethereum.inr}`,
+      userTotalBalance: `${userTotalBalance} ETH (without gas!)`,
+      userTotalSpentGas: `${
+        userTotalBalance - parseFloat(resBalanceData.result) / 10 ** 18
+      } ETH`,
+      userTotalValue: `Rs.${resData.ethereum.inr * userTotalBalance}`,
     });
   } catch (error) {
     console.error(
