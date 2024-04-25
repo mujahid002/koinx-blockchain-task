@@ -89,7 +89,9 @@ const fetchPrice = async (req, res) => {
       .sort({ timestamp: -1 })
       .toArray();
 
-    await res.status(200).json({ latestEtherPrices: etherPrices[0] });
+    await res
+      .status(200)
+      .json({ latestEtherPriceStoredOnMongo: `${etherPrices[0]} ETH` });
 
     // await client.close();
   } catch (error) {
