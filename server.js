@@ -154,18 +154,19 @@ app.get("/fetch-balance-price", async (req, res) => {
 
 app.listen(port, async () => {
   console.log(`Server listening on port: ${port}`);
+  // store while running server!
   await storePrice();
-
   //   connectMongo();
 });
 
+// store ether price in INR for every 10 minutes in Mongo using node-cron(cronjob)
 cron.schedule("*/10 * * * *", async () => {
   try {
-    console.log("==============START===================");
+    console.log("==============STORING===================");
     await storePrice();
     // await fetchPrice()
-    console.log("===============END==================");
+    console.log("===============STORED==================");
   } catch (error) {
-    console.error("Error in cron job while fetching price from db: ", error);
+    console.error("Error in cron job while storing ether price in db: ", error);
   }
 });
