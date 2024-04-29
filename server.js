@@ -18,9 +18,9 @@ app.use(express.urlencoded({ extended: true }));
 const port = process.env.PORT || 3001;
 
 // Get Request for Testing
-// app.get("/", async (req, res) => {
-//   res.status(200).send(`Working on ${port} PORT!`);
-// });
+app.get("/", async (req, res) => {
+  res.status(200).send(`Working on ${port} PORT!`);
+});
 
 // Fetch User Balance with address as input
 // return: fetch user's balance in wei
